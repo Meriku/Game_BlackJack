@@ -3,6 +3,7 @@ let sumEl = document.getElementById("sum-el")
 let cardsEl = document.getElementById("cards-el")
 let cardsDealerEl = document.getElementById("cardsDealer-el")
 let resultEl = document.getElementById("result-el")
+let moneyEl = document.getElementById("money-el")
 let startButEl = document.getElementById("startBut-el")
 let endButEl = document.getElementById("endBut-el")
 let nextCardButEl = document.getElementById("nextCardBut-el")
@@ -10,12 +11,30 @@ let nextCardButEl = document.getElementById("nextCardBut-el")
 let cards = []
 let dealerCards = []
 
+let player = {
+    name: "John",
+    chips: 46,
+    give: function(amount) {
+        player.chips += amount
+    },
+    take: function(amount) {
+        player.chips -= amount
+    }
+}
+
 function Start() {
+
+    if (player.chips < 10) {
+        console.log("Add funds to play")
+        return
+    }
+
     cards = []
     dealerCards = []
 
     UpdateCards()
     UpdateSum()
+    UpdateMoney()
 
     cardsDealerEl.textContent = ""
     Hide([startEl, startButEl, cardsDealerEl])
@@ -41,6 +60,7 @@ function End() {
     let result = GetCardsSum()
     let dealerResult = GetDealerCards(result)
 
+    
     if (result <= 21 && dealerResult === result) {
         Draw()
     }
@@ -50,15 +70,17 @@ function End() {
     else {
         Lose()
     }
+    
     EndGame()
 }
 
-// important to have 3 different functions to implement Global Score later
 function Lose() {
     startEl.textContent = "You lose. Want to start a new game?"
+    player.take(10)
 }
 function Won() {
     startEl.textContent = "You won. Want to start a new game?"
+    player.give(10)
 }
 function Draw() {
     startEl.textContent = "Draw. Want to start a new game?"
@@ -67,6 +89,7 @@ function Draw() {
 function EndGame() {
     Show([startEl, startButEl])
     Hide([nextCardButEl, endButEl])
+    UpdateMoney()
 }
 
 function GetDealerCards(playerSum) {
@@ -130,6 +153,10 @@ function UpdateCards() {
         }
         cardsEl.textContent += cards[i]
     }  
+}
+
+function UpdateMoney() {
+    moneyEl.textContent = "Money: " + player.chips 
 }
 
 function Hide(elements) {
