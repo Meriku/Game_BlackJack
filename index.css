@@ -13,6 +13,11 @@ body {
 
 }
 
+div {
+    vertical-align: middle;
+    align-self: center;
+}
+
 button {
     border: none;
     padding-top: 10px;

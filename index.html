@@ -6,9 +6,9 @@
     <body>
         <div>
             <h2>BlackJack</h2>
-            <h3 id="start-el">Do you want to start game?</h3>
-            <h4 id="cards-el">Cards:</h4>
-            <h4 id="sum-el">Sum:</h4>
+            <h3 id="start-el">Do you want to start a game?</h3>
+            <h4 id="cards-el" hidden="true">Cards:</h4>
+            <h4 id="sum-el" hidden="true">Sum:</h4>
         </div>
 
         <div>
@@ -16,11 +16,15 @@
         </div>
 
         <div>
+            <button id="nextCardBut-el" hidden="true" onclick="NextCard()">Next Card</button>
+        </div>
+
+        <div>
             <button id="endBut-el" hidden="true" onclick="End()">End</button>
         </div>
         <br>
         <h4 id="cardsDealer-el" hidden="true">Dealer's Cards:</h4>
-        <span id="result-el">Result:</span>
+        <span id="result-el" hidden="true">Result:</span>
         <script src="index.js"></script>
     </body>
 
