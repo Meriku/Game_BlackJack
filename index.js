@@ -83,7 +83,25 @@ function GetDealerCards(playerSum) {
 }
 
 function GetCard() {
-    return Math.floor(Math.random() * 10 + 1)
+
+    // ACE (1 and 11) return 11
+    // Court card: a jack, queen or king (11-13) return 10
+    let number = Math.floor(Math.random() * 13) + 1
+    switch(number) 
+    {
+        case 1:
+            return 11
+        case 11:
+            return 10
+        case 12: 
+            return 10
+        case 13:
+            return 10
+        default:
+            return number
+
+    }
+
 }
 
 function GetCardsSum() {
