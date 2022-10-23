@@ -1,19 +1,47 @@
-let startEl = document.getElementById("start-el")
-let sumEl = document.getElementById("sum-el")
-let cardsEl = document.getElementById("cards-el")
-let cardsDealerEl = document.getElementById("cardsDealer-el")
-let resultEl = document.getElementById("result-el")
-let moneyEl = document.getElementById("money-el")
-let startButEl = document.getElementById("startBut-el")
-let endButEl = document.getElementById("endBut-el")
-let nextCardButEl = document.getElementById("nextCardBut-el")
+const textContainer = document.getElementById("textContainer")
+const buttonContainer = document.getElementById("buttonContainer")
+const moneyContainer = document.getElementById("moneyContainer")
 
-let cards = []
-let dealerCards = []
+const cards = {
+    array: [],
+    addCard: function() {
+        this.array.push(GetCard())
+    },
+    getString: function() {
+        return this.array.join(" ")
+    },
+    getSum: function() {
+        return this.array.reduce((x, y) => x + y, 0)
+    },
+    clear: function() {
+        this.array = []
+    },
+    checkLose: function() {
+        return this.getSum() > 21
+    }
 
-let player = {
+}
+
+const dealerCards = {
+    array: [],
+    generateCards: function() {
+        GetDealerCards(cards.getSum())
+    },
+    getString: function() {
+        return this.array.join(" ")
+    },
+    getSum: function() {
+        return this.array.reduce((x, y) => x + y, 0)
+    },
+    clear: function() {
+        this.array = []
+    },
+}
+
+const player = {
     name: "John",
     chips: 46,
+    gameResult: "",
     give: function(amount) {
         player.chips += amount
     },
@@ -22,91 +50,117 @@ let player = {
     }
 }
 
-function Start() {
+SetUp()
 
+function SetUp() {
+    textContainer.innerHTML = '<h3>Do you want to start a game?</h3>'
+    buttonContainer.innerHTML = '<button id="startBut-el">Start!</button>'
+    let el = document.getElementById("startBut-el")
+    el.addEventListener("click", Start)
+}
+
+function AddFundsRequest() {
+    textContainer.innerHTML = '<h3>You are out of funds. Add chips to play.</h3>'
+    buttonContainer.innerHTML = '<button id="addMoneyBut-el">Add funds</button>'
+    document.getElementById("addMoneyBut-el").addEventListener("click", AddMoney)
+}
+
+function AddMoney() {
+    player.chips += 50
+    Start()
+}
+
+function Start() {
     if (player.chips < 10) {
-        console.log("Add funds to play")
+        AddFundsRequest()
         return
     }
+    else {
+        cards.clear()
+        dealerCards.clear()
+        Render()                                 
+    }
+}
 
-    cards = []
-    dealerCards = []
+function Render() {
+    let sum = cards.getSum()
+    if (sum === 0) {sum = ""}
 
-    UpdateCards()
-    UpdateSum()
-    UpdateMoney()
+    textContainer.innerHTML =  `<p>Your Cards: ${cards.getString()}</p>
+                                <p>Sum: ${sum}</p>`
+    buttonContainer.innerHTML = `<button id="nextCardBut-el">Next Card</button>
+                                    <button id="endBut-el">End</button>`
+    moneyContainer.innerHTML =  `<p>Money: ${player.chips}</p>`
+    document.getElementById("nextCardBut-el").addEventListener("click", NextCard)
+    document.getElementById("endBut-el").addEventListener("click", End)        
+}
 
-    cardsDealerEl.textContent = ""
-    Hide([startEl, startButEl, cardsDealerEl])
-    Show([sumEl, cardsEl, nextCardButEl, endButEl])
+function RenderEndGame() {
+    let cardsSum = cards.getSum()
+    if (cardsSum > 21) {
+        textContainer.innerHTML =  `<h3>${player.gameResult}. Do you want to play again?</h3>
+        <p>Your Cards: ${cards.getString()}</p>
+        <p>Sum: ${cardsSum}</p>`
+    }
+    else {
+        textContainer.innerHTML =  `<h3>${player.gameResult}. Do you want to play again?</h3>
+        <p>Your Cards: ${cards.getString()}</p>
+        <p>Sum: ${cardsSum}</p>
+        <p>Dealer Cards: ${dealerCards.getString()}</p>
+        <p>Sum: ${dealerCards.getSum()}</p>`
+    }
+    buttonContainer.innerHTML = `<button id="newGameBut-el">Start new game</button>`
+    moneyContainer.innerHTML =  `<p>Money: ${player.chips}</p>`
+    document.getElementById("newGameBut-el").addEventListener("click", Start)
+    
 }
 
 function NextCard() {
-    let newCard = GetCard()
-    cards.push(newCard)
-    UpdateCards()
-    UpdateSum()
-    CheckForLose()
-}
-
-function CheckForLose() {
-    if (GetCardsSum() > 21) {
+    cards.addCard()
+    if (cards.checkLose()) {
         End()
     }
+    else {
+        Render()
+    } 
 }
 
 function End() {
-
-    let result = GetCardsSum()
-    let dealerResult = GetDealerCards(result)
-
-    
-    if (result <= 21 && dealerResult === result) {
-        Draw()
-    }
-    else if (result <= 21 && (result > dealerResult || dealerResult > 21)) {
-        Won()
+    let result = cards.getSum()
+    if (result > 21) {
+        player.gameResult = "Lose"
+        player.take(10)
     }
     else {
-        Lose()
+        dealerCards.generateCards()
+        let dealerResult = dealerCards.getSum()     
+        if (dealerResult === result) {
+            player.gameResult = "Draw"
+        }
+        else if (result > dealerResult || dealerResult > 21) {
+            player.gameResult  = "Won"
+            player.give(10)
+        }
+        else {
+            player.gameResult = "Lose"
+            player.take(10)
+        }
     }
-    
-    EndGame()
+    RenderEndGame()
 }
 
-function Lose() {
-    startEl.textContent = "You lose. Want to start a new game?"
-    player.take(10)
-}
-function Won() {
-    startEl.textContent = "You won. Want to start a new game?"
-    player.give(10)
-}
-function Draw() {
-    startEl.textContent = "Draw. Want to start a new game?"
-}
-
-function EndGame() {
-    Show([startEl, startButEl])
-    Hide([nextCardButEl, endButEl])
-    UpdateMoney()
-}
 
 function GetDealerCards(playerSum) {
     let dealerSum = 0
-    while (dealerSum <= playerSum && dealerSum < 21) {
+    while (dealerSum <= playerSum && dealerSum < 21) 
+    {
         let card = GetCard()
-        dealerCards.push(card)
         dealerSum += card
-        cardsDealerEl.innerText += " " + card 
+        dealerCards.array.push(card)
     }
-    cardsDealerEl.hidden = false
-    cardsDealerEl.innerText += " Sum: " + dealerSum
-    return dealerSum
 }
 
 function GetCard() {
-
     // ACE (1 and 11) return 11
     // Court card: a jack, queen or king (11-13) return 10
     let number = Math.floor(Math.random() * 13) + 1
@@ -122,51 +176,5 @@ function GetCard() {
             return 10
         default:
             return number
-
-    }
-
-}
-
-function GetCardsSum() {
-    let sum = 0
-
-    for (let i = 0; i < cards.length; i++) {
-        sum += cards[i]
-    }
-    return sum
-}
-
-function UpdateSum() {
-    let sum = GetCardsSum()
-    sumEl.textContent = "Sum: "
-    if (sum > 0) {
-        sumEl.textContent += sum
-    }
-}
-
-function UpdateCards() {
-    cardsEl.textContent = "Cards: "
-
-    for (let i = 0; i < cards.length; i++) {
-        if (i > 0) {
-            cardsEl.textContent += ", "
-        }
-        cardsEl.textContent += cards[i]
-    }  
-}
-
-function UpdateMoney() {
-    moneyEl.textContent = "Money: " + player.chips 
-}
-
-function Hide(elements) {
-    for (let i = 0; i < elements.length; i++) {
-        elements[i].hidden = true
-    }
-}
-
-function Show(elements) {
-    for (let i = 0; i < elements.length; i++) {
-        elements[i].hidden = false
     }
 }
